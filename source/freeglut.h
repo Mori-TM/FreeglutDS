@@ -3,6 +3,8 @@
 #include <nds.h>
 #include <math.h>
 
+#define glClearColor(r,g,b,a) glClearColor(r*255,g*255,b*255,a*255)
+
 void glVertex2i(int x, int y) { glVertex3f(x, y, 0.0); }
 void glVertex2f(float x, float y) { glVertex3f(x, y, 0.0); }  
 void glVertex2d(double x, double y) { glVertex3f(x, y, 0.0); }
@@ -16,7 +18,7 @@ void glColor3d(double red, double green, double blue){ glColor3f(red, green, blu
 
 void gluOrtho2D(double left, double right, double bottom, double top) { glOrtho(left, right, bottom, top, 0.1, 100); }
 
-#define GLUT_RGBA POLY_ALPHA(31)
+#define GLUT_RGBA POLY_ALPHA(255)
 #define glClearDepth() glClearDepth(0x7FFF)
 #define glPopMatrix() glPopMatrix(1)
 
@@ -29,7 +31,7 @@ void glutInit(int *argc, char **argv)
 { 
 	glInit();
 	glEnable(GL_ANTIALIAS);
-	glClearColor(255,255,255,31);
+	glClearColor(1,1,1,1);
 	videoSetMode(MODE_0_3D);
 	glClearPolyID(63);
 	glClearDepth(); 
@@ -50,7 +52,7 @@ void glutCreateWindow(const char *title)
 
 void (*reshapefunc)(int ,int) = NULL;
 void (*displayfunc)(void) = NULL;
-void (*joystickfunc)(void) = NULL;
+void (*joystickfunc)(int) = NULL;
 
 void glutReshapeFunc(void (*callback) (int ,int))
 {
@@ -62,7 +64,7 @@ void glutDisplayFunc(void (*callback) (void))
 	displayfunc = callback;
 }
 
-void glutJoystickFunc(void (*callback) (void))
+void glutJoystickFunc(void (*callback) (int))
 {	
 	joystickfunc = callback;
 }
@@ -76,7 +78,7 @@ void glutMainLoop(void)
 		scanKeys();	
 		
 		if(displayfunc) displayfunc();
-		if(joystickfunc) joystickfunc();
+		if(joystickfunc) joystickfunc(keysHeld());
 	}
 }
 
@@ -86,46 +88,46 @@ void glutSolidCube(double size)
 	
 	//top
 	glBegin(GL_QUADS);                
-		glVertex3f( 0.5f, 0.5f,-0.5f);
-		glVertex3f(-0.5f, 0.5f,-0.5f);
-		glVertex3f(-0.5f, 0.5f, 0.5f);
-		glVertex3f( 0.5f, 0.5f, 0.5f);
-	glEnd();
-	// bottom
-	glBegin(GL_QUADS);                 
-		glVertex3f( 0.5f,-0.5f, 0.5f);
-		glVertex3f(-0.5f,-0.5f, 0.5f);
-		glVertex3f(-0.5f,-0.5f,-0.5f);
-		glVertex3f( 0.5f,-0.5f,-0.5f);
-	glEnd();            
-	// left
-	glBegin(GL_QUADS);
-		glVertex3f(-0.5f,-0.5f, 0.5f);
-		glVertex3f(-0.5f, 0.5f, 0.5f);
-		glVertex3f(-0.5f, 0.5f,-0.5f);
-		glVertex3f(-0.0f,-0.0f,-0.5f);
-	glEnd();
-	// right
-	glBegin(GL_QUADS);
-		glVertex3f( 0.5f, 0.5f, 0.5f);
-		glVertex3f( 0.5f,-0.5f, 0.5f);
-		glVertex3f( 0.5f,-0.5f,-0.5f);
-		glVertex3f( 0.5f, 0.5f,-0.5f);
-	glEnd();
-	// front
-	glBegin(GL_QUADS);
-		glVertex3f( 0.5f, 0.5f, 0.5f);
-		glVertex3f(-0.5f, 0.5f, 0.5f);
-		glVertex3f(-0.5f,-0.5f, 0.5f);
-		glVertex3f( 0.5f,-0.5f, 0.5f);
-		glEnd();
-	// back
-	glBegin(GL_QUADS);
-		glVertex3f(-0.5f, 0.5f,-0.5f);
-		glVertex3f( 0.5f, 0.5f,-0.5f);
-		glVertex3f( 0.5f,-0.5f,-0.5f);
-		glVertex3f(-0.5f,-0.5f,-0.5f);
-	glEnd();
+        glTexCoord2f(1.0f,1.0f); glVertex3f( 1.0f, 1.0f,-1.0f);
+        glTexCoord2f(0.0f,1.0f); glVertex3f(-1.0f, 1.0f,-1.0f);
+        glTexCoord2f(0.0f,0.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
+        glTexCoord2f(1.0f,0.0f); glVertex3f( 1.0f, 1.0f, 1.0f);
+     glEnd();
+     // bottom
+     glBegin(GL_QUADS);                 
+        glTexCoord2f(1.0f,1.0f); glVertex3f( 1.0f,-1.0f, 1.0f);
+        glTexCoord2f(0.0f,1.0f); glVertex3f(-1.0f,-1.0f, 1.0f);
+        glTexCoord2f(0.0f,0.0f); glVertex3f(-1.0f,-1.0f,-1.0f);
+        glTexCoord2f(1.0f,0.0f); glVertex3f( 1.0f,-1.0f,-1.0f);
+     glEnd();            
+     // left
+     glBegin(GL_QUADS);
+        glTexCoord2f(1.0f,1.0f); glVertex3f(-1.0f,-1.0f, 1.0f);
+        glTexCoord2f(0.0f,1.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
+        glTexCoord2f(0.0f,0.0f); glVertex3f(-1.0f, 1.0f,-1.0f);
+        glTexCoord2f(1.0f,0.0f); glVertex3f(-1.0f,-1.0f,-1.0f);
+     glEnd();
+     // right
+     glBegin(GL_QUADS);
+        glTexCoord2f(1.0f,1.0f); glVertex3f( 1.0f, 1.0f, 1.0f);
+        glTexCoord2f(0.0f,1.0f); glVertex3f( 1.0f,-1.0f, 1.0f);
+        glTexCoord2f(0.0f,0.0f); glVertex3f( 1.0f,-1.0f,-1.0f);
+        glTexCoord2f(1.0f,0.0f); glVertex3f( 1.0f, 1.0f,-1.0f);
+     glEnd();
+     // front
+     glBegin(GL_QUADS);
+        glTexCoord2f(1.0f,1.0f); glVertex3f( 1.0f, 1.0f, 1.0f);
+        glTexCoord2f(0.0f,1.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
+        glTexCoord2f(0.0f,0.0f); glVertex3f(-1.0f,-1.0f, 1.0f);
+        glTexCoord2f(1.0f,0.0f); glVertex3f( 1.0f,-1.0f, 1.0f);
+     glEnd();
+     // back
+     glBegin(GL_QUADS);
+        glTexCoord2f(1.0f,1.0f); glVertex3f(-1.0f, 1.0f,-1.0f);
+        glTexCoord2f(0.0f,1.0f); glVertex3f( 1.0f, 1.0f,-1.0f);
+        glTexCoord2f(0.0f,0.0f); glVertex3f( 1.0f,-1.0f,-1.0f);
+        glTexCoord2f(1.0f,0.0f); glVertex3f(-1.0f,-1.0f,-1.0f);
+     glEnd();
 }
 
 void glutWireCube(double size)

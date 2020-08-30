@@ -3,66 +3,98 @@
 #include <stdio.h>
 #include "freeglut.h"
 
-float PMZ = -60.0;
-float PMX = 0.0;
-float PMY = 0.0;
+#include <nds/arm9/image.h>
+#include "Test_pcx.h"
+#include "TM_pcx.h"
 
 float CMZ = 0.1;
-float CMZ1 = 0.0;
 float CMX = 0.0;
 float CMY = 0.0;
 
-float CRMZ = 0.0;
-float CRMX = 0.0;
-float CRMY = 0.0;
+float CRX = 1.57;
+float CRY = 0.0;
+float CRZ = 1.0;
 
-void Key()
+float lx, ly, lz;
+
+int texture[2];
+int LoadGLTextures()
+{
+	glGenTextures(2, &texture[0]);
+	sImage pcx;
+	loadPCX((u8*)TM_pcx, &pcx);
+	image8to16(&pcx);
+	
+	glBindTexture(0, texture[0]);
+	glTexImage2D(0, 0, GL_RGBA, TEXTURE_SIZE_128 , TEXTURE_SIZE_128, 0, TEXGEN_TEXCOORD, pcx.image.data8);
+	imageDestroy(&pcx);
+	
+	loadPCX((u8*)Test_pcx, &pcx);
+	image8to16(&pcx);
+	glBindTexture(0, texture[1]);
+	glTexImage2D(0, 0, GL_RGBA, TEXTURE_SIZE_128 , TEXTURE_SIZE_128, 0, TEXGEN_TEXCOORD, pcx.image.data8);
+	imageDestroy(&pcx);
+	
+	return TRUE;
+}
+
+
+void Key(int key)
 {
 //	touchPosition touch;
-//	touchRead(&touch);
-	u16 keys = keysHeld();
+//	touchRead(&touch);	
+
+	lx = cos(CRX) * -cos(CRY);
+	ly = sin(CRY);
+	lz = sin(CRX) * -cos(CRY);	
+
+	if((key & KEY_A)) {CRX += 0.2;}
+	if((key & KEY_Y)) {CRX -= 0.2;}
+	if((key & KEY_X)) {CRY += 0.2;}
+	if((key & KEY_B)) {CRY -= 0.2;}
 	
-	if((keys & KEY_LEFT)) {CMX -= 0.3;}
-	if((keys & KEY_RIGHT)) {CMX += 0.3;}
-	if((keys & KEY_UP)) {CMZ -= 0.3; CMZ1 -= 0.3;}
-	if((keys & KEY_DOWN)) {CMZ += 0.3; CMZ1 += 0.3;}
+	if((key & KEY_LEFT)) {CMX -= 0.3;}
+	if((key & KEY_RIGHT)) {CMX += 0.3;}
+	if((key & KEY_UP)) {CMZ -= 0.3;}
+	if((key & KEY_DOWN)) {CMZ += 0.3;}
 }
 
 void Display()
 {
 	glLoadIdentity();
-	glClearColor(227,215,247,31); // BG must be opaque for AA to work
-	gluLookAt(	CMX, CMY, CMZ,		//camera possition 
-				CMX, CMY, CMZ1,		//look at
-				0.0, 1.0, 0.0);		//up	
-	
+	glClearColor(0.89,0.84,0.96,1); 
+	gluLookAt(	CMX, CMY, CMZ,				//camera possition 
+				CMX+lx, CMY+ly, CMZ+lz,		//look at
+				0.0, 1.0, 0.0);				//up
+					
 	glPushMatrix();
-		glTranslatef(PMX, PMY, PMZ);
+		glTranslatef(0.0, 0.0, -1.0);
+		glEnable(GL_TEXTURE_2D);
+		glColor3f(1.0 ,1.0, 1.0);
+		glBindTexture(GL_TEXTURE_2D, texture[0]);
+		
+		glBegin(GL_QUADS);
+			glTexCoord2f(0.0, 1.0); glVertex2f(-0.5, -0.5);
+			glTexCoord2f(1.0, 1.0); glVertex2f(0.5, -0.5);
+			glTexCoord2f(1.0, 0.0); glVertex2f(0.5, 0.5);
+			glTexCoord2f(0.0, 0.0); glVertex2f(-0.5, 0.5);
+		glEnd();
+	glPopMatrix();
+	
+	glBindTexture(GL_TEXTURE_2D, texture[1]);
+	glPushMatrix();	
+		glTranslatef(0.0, 0.0, -40.0);
 			
-		for(int i = 0; i < 11; i++)
-		for(int yy = 0; yy < 11; yy++)
-			for(int j= 0; j < 11; j++) 
+		for(int i = 0; i < 6; i++)
+		for(int yy = 0; yy < 6; yy++)
+			for(int j= 0; j < 6; j++) 
 			{
-				if(yy == 0){ glColor3f(1.0 ,0.0, 0.0); }
-				if(yy == 1){ glColor3f(0.0 ,1.0, 0.0); }
-				if(yy == 2){ glColor3f(0.0 ,0.0, 1.0); }
-				if(yy == 3){ glColor3f(1.0 ,1.0, 0.0); }
-				if(yy == 4){ glColor3f(1.0 ,0.0, 1.0); }
-				if(yy == 5){ glColor3f(0.0 ,1.0, 1.0); }
-				
-				if(yy == 6){ glColor3f(1.0 ,0.0, 0.0); }
-				if(yy == 7){ glColor3f(0.0 ,1.0, 0.0); }
-				if(yy == 8){ glColor3f(0.0 ,0.0, 1.0); }
-				if(yy == 9){ glColor3f(1.0 ,1.0, 0.0); }
-				if(yy == 10){ glColor3f(1.0 ,0.0, 1.0); }
-				if(yy == 11){ glColor3f(0.0 ,1.0, 1.0); }
 
 			     glPushMatrix();
 					glTranslatef(i*1.0,yy*1.0,j * 1.0);
-   	         		glutSolidCube(1.0);
+   	         		glutSolidCube(0.5);
       		    glPopMatrix();
-	        }		
-						
+	        }							
 	glPopMatrix();
 	
 	glutSwapBuffers();		
@@ -84,7 +116,16 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | POLY_CULL_NONE);
 	glutInitWindowSize(255, 191);
-	glutCreateWindow("Hello");
+	glutCreateWindow("Hello Glut");
+
+	glMaterialf(GL_AMBIENT, RGB15(16,16,16));
+	glMaterialf(GL_DIFFUSE, RGB15(16,16,16));
+	glMaterialf(GL_SPECULAR, BIT(15) | RGB15(8,8,8));
+	glMaterialf(GL_EMISSION, RGB15(16,16,16));
+	glMaterialShinyness();
+	
+	vramSetBankA(VRAM_A_TEXTURE);
+	LoadGLTextures();
 	
 	glutReshapeFunc(Reshape);
 	glutDisplayFunc(Display);
